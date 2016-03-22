@@ -303,8 +303,9 @@ menu() { # {{{ # Menu of scan results to choose an AP from
 		exit 1
 	fi
 	scan_results >/dev/null # Will make $stemp.
-	longest=$(awk -f $PARSER $stemp|awk -F'"' 'BEGIN{longest=0}{if(length($2)>longest) longest=length($2)}END{printf longest}')
-	headers=$(printf "    %-${longest}s%s   %s" Network Signal Cababilities)
+	longest=$(awk -f $PARSER $stemp|awk -F'"' 'BEGIN{longest=0}{if(length($2)>longest) longest=length($2)}{if(longest>40) longest=40}END{printf lo
+ngest}')
+	headers=$(printf "  %-${longest}s%s   %s" Network Signal Capabilities)
 	size=$(cat $stemp|wc -l)
 	choice=$(awk -f $MENUMAKER $stemp|xargs dialog --title Choose --no-collapse --cancel-label Bail --ok-label Connect --column-separator '|' --stdout --menu "${headers}" 0 0 $((size-2)))
 	if [ $? -ne 0 ];then
