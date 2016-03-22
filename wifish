@@ -140,19 +140,25 @@ get_password() { # {{{ # Get a password interactively
 	fi # }}}
 } # }}}
 
+autosave="yes"
 save_config() { # {{{ # Runs wpa_cli save_config
-	if [ -n "$interactive" ];then # {{{ # Only prompt if we're interactive
-		_yesno=""
-		printf "Do you want to save this connection? (y/N): "
-		read _yesno
-		echo
-		echo $_yesno|egrep -q '^[Yy]'
-		if [ $? -eq 0 ];then
-			printf "Saving wpa_supplicant config.. "
-			cli save_config|tail -1
+	if [ -n "$interactive" ];then # {{{ # Only prompt if we're 
+		if [ -z "$autosave" ];then
+			_yesno=""
+			printf "Do you want to save this connection? (y/N): "
+			read _yesno
+			echo
+			echo $_yesno|egrep -q '^[Yy]'
+			if [ $? -eq 0 ];then
+				printf "Saving wpa_supplicant config.. "
+				cli save_config|tail -1
+			fi
+			unset _yesno
+		else
+            printf "Saving wpa_supplicant config.. "
+            cli save_config|tail -1
 		fi
-		unset _yesno
-        fi # }}}
+    fi # }}}
 } # }}}
 
 scan_hidden() { # {{{ # Ask if we want to try to connect to a hidden SSID
@@ -233,6 +239,7 @@ wpa_connect() { # {{{ # Configure wpa_supplicant and enable connection
 	if [ -n "$_net"  ];then # {{{ # Connect to AP We already Know
 		echo "Found existing wpa_cli config for '$_ss', enabling network ${net}"
 		# }}}
+		_newnet=1
 	else # {{{ # Set up a new SSID
 		echo "No existing config for '$_ss', creating"
 		if [ ! -n "$stemp" ];then # {{{ # Initiate Scan if there are no existing results
