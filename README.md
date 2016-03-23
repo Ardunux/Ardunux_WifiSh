@@ -109,7 +109,7 @@ Now you can use 'wifish' from anywhere without the fully qualified path
 #### Arch Linux
 
 ```
-% uninstall.sh
+% sudo ./uninstall.sh
 ```
 
 #### Void LInux
