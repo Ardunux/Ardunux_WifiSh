@@ -1,4 +1,10 @@
 #!/bin/sh
+
+if [ $(id -u) -ne 0 ]; then # {{{ # Everything else needs to be run as root
+  printf "Script must be run as root. Try 'sudo wifish'\n"
+  exit 1
+fi # }}}
+
 if [ -t 0 ];then # {{{ # Test to see if we are interactive or not
 	interactive=yes
 else
@@ -18,7 +24,7 @@ fi # }}}
 
 which ${wpa_cli} >/dev/null 2>&1 # {{{ # Make sure we have wpa_cli for those people who skipped "Requirements"
 if [ $? -ne 0 ]; then
-	echo "FAIL & BAIL: '${wpa_cli}' not available" >&1
+	echo "FAIL: '${wpa_cli}' not available" >&1
 	exit 127
 fi # }}}
 
@@ -92,7 +98,7 @@ get_userpass() { # {{{ # Get a username and password interactively
 			_pret=$?
 			printf "\n" 1>&2 # }}}
 		else # {{{ # Dialog username prompt
-			_identity=$(dialog --ok-label "Next" --cancel-button "Bail" --stdout --title "Username" --clear --inputbox "$_msg" 0 0)
+			_identity=$(dialog --ok-label "Next" --cancel-button "Cancel" --stdout --title "Username" --clear --inputbox "$_msg" 0 0)
 			_pret=$?
 		fi # }}}
 		if [ $_pret -ne 0 ];then
@@ -128,7 +134,7 @@ get_password() { # {{{ # Get a password interactively
 			stty echo
 			printf "\n" >&2 # }}}
 		else # {{{ # Dialog passphrase prompt
-			_psk=$(dialog --insecure --ok-label "Try It" --cancel-button "Bail" --stdout --title "Secret Stuff" --clear --passwordbox "$_msg" 0 0)
+			_psk=$(dialog --insecure --ok-label "Try It" --cancel-button "Cancel" --stdout --title "Secret Stuff" --clear --passwordbox "$_msg" 0 0)
 			_pret=$?
 		fi # }}}
 		echo $_psk
@@ -173,7 +179,7 @@ scan_hidden() { # {{{ # Ask if we want to try to connect to a hidden SSID
 		if [ $? -eq 0 ];then
 			echo "Ok, your call"
 		else
-			echo "Ok, Bailing now"
+			echo "Ok, Exit now"
 			exit 1
 		fi
 		unset _tfile _ssid _yesno
@@ -197,7 +203,7 @@ wpa_encrypt() { # {{{ # Handle Encryption
 		__psk=$(get_password)
 		if [ $? -ne 0 ];then # {{{ User cancelled during get_password. Bail.
 			clear
-			echo "Bailing at your request. What a waste of time that was ..."
+			echo "Exit at your request. What a waste of time that was ..."
 			exit 69
 		fi # }}}
 	        echo $__us|egrep -q 'WPA2-PSK'
@@ -213,7 +219,7 @@ wpa_encrypt() { # {{{ # Handle Encryption
 		if [ $? -eq 0 ];then
 			__userpass=$(get_userpass)
 			if [ $? -ne 0 ];then # {{{ User cancelled during get_userpass Bail.
-				echo "Bailing at your request. What a waste of time that was ..."
+				echo "Exit at your request. What a waste of time that was ..."
 				exit 69
 			fi # }}}
 			__identity=$(__userpass%%:*)
@@ -314,10 +320,10 @@ menu() { # {{{ # Menu of scan results to choose an AP from
 ngest}')
 	headers=$(printf "  %-${longest}s%s   %s" Network Signal Capabilities)
 	size=$(cat $stemp|wc -l)
-	choice=$(awk -f $MENUMAKER $stemp|xargs dialog --title Choose --no-collapse --cancel-label Bail --ok-label Connect --column-separator '|' --stdout --menu "${headers}" 0 0 $((size-2)))
+	choice=$(awk -f $MENUMAKER $stemp|xargs dialog --title Choose --no-collapse --cancel-label Exit --ok-label Connect --column-separator '|' --stdout --menu "${headers}" 0 0 $((size-2)))
 	if [ $? -ne 0 ];then
 		clear
-		echo "Bailed. All that for nuthin'..."
+		echo "Exit. All that for nuthin'..."
 		exit
 	fi
 	clear
